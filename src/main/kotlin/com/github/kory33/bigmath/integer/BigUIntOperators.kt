@@ -46,3 +46,22 @@ operator fun BigUnsignedInteger.plus(another : BigUnsignedInteger) : BigUnsigned
 
     return BigUnsignedInteger(newIntegerDeque)
 }
+
+operator fun BigUnsignedInteger.compareTo(another: BigUnsignedInteger) : Int {
+    if (container.size != another.container.size) {
+        return container.size.compareTo(another.container.size)
+    }
+
+    val thisIterator = this.container.descendingIterator()
+    val anotherIterator  = another.container.descendingIterator()
+
+    while (thisIterator.hasNext()) {
+        val thisNext = thisIterator.next()
+        val anotherNext = anotherIterator.next()
+        if (thisNext != anotherNext) {
+            return thisNext.compareTo(anotherNext)
+        }
+    }
+
+    return 0
+}
