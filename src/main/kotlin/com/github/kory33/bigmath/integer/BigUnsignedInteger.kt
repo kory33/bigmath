@@ -22,7 +22,11 @@ private fun removeFirstChars(s : String, c : Char) : String{
 }
 
 /**
- * Store array of integers in little endian
+ * A class which represents a large positive integer or zero.
+ * It stores array of integers in little endian.
+ *
+ * The array must contain at least one element. It must be ensured that
+ * either the last element of array is not zero or the array has a length of 1.
  */
 class BigUnsignedInteger internal constructor(internal val container: ArrayDeque<Long> = ArrayDeque()) {
     constructor(int : Long) : this() {
@@ -32,6 +36,12 @@ class BigUnsignedInteger internal constructor(internal val container: ArrayDeque
     init {
         if(container.isEmpty()) {
             container.addFirst(0)
+        }
+    }
+
+    internal fun removeTrailingZeros() {
+        while (container.last == 0L && container.size != 0) {
+            container.removeLast()
         }
     }
 
