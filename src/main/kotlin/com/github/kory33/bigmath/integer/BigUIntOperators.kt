@@ -114,7 +114,7 @@ operator fun BigUnsignedInteger.compareTo(another: BigUnsignedInteger) : Int {
 
 operator fun BigUnsignedInteger.minus(another: BigUnsignedInteger) : BigUnsignedInteger {
     if (another > this) {
-        throw ArithmeticException("")
+        throw ArithmeticException("Result out of range!")
     }
     val newIntegerDeque = ArrayDeque<Long>()
 
