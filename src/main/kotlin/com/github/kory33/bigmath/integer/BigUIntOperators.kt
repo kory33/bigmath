@@ -25,7 +25,7 @@ private fun addLong(x : Long, y : Long, carry : Boolean) : Pair<Long, Boolean> {
 private fun subtractLong(x : Long, y : Long) : Pair<Long, Boolean> {
     val diff = x - y
 
-    return if ((x >= 0 && y >= 0) || (x <= 0 && y <= 0)) {
+    return if ((x >= 0 && y >= 0) || (x < 0 && y < 0)) {
         Pair(diff, diff < 0)
     } else {
         Pair(diff, y < 0)
@@ -41,7 +41,7 @@ private fun subtractLong(x : Long, y : Long, borrow : Boolean) : Pair<Long, Bool
 
     return if (borrow) {
         if (diff != 0L) {
-            Pair(diff - 1, borrow)
+            Pair(diff - 1, diffBorrow)
         } else {
             Pair(-1L, true)
         }
