@@ -64,4 +64,17 @@ class BigUnsignedInteger internal constructor(internal val container: ArrayDeque
     override fun toString(): String {
         return container.toString()
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as BigUnsignedInteger
+
+        return this.compareTo(other) == 0
+    }
+
+    override fun hashCode(): Int {
+        return container.hashCode()
+    }
 }
