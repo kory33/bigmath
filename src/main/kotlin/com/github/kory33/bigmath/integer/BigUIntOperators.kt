@@ -136,3 +136,34 @@ operator fun BigUnsignedInteger.minus(another: BigUnsignedInteger) : BigUnsigned
 
     return newBigUInt
 }
+
+
+infix fun BigUnsignedInteger.shl(shiftAmount : Long) : BigUnsignedInteger {
+    if (shiftAmount < 0) {
+        throw ArithmeticException("Shift amount invalid!")
+    }
+
+    if (this == BigUnsignedInteger(0)) {
+        return BigUnsignedInteger(0)
+    }
+
+    val newIntegerList = ArrayList<Long>()
+
+    val blockShiftAmount = shiftAmount / BIG_UINT_BLOCK_SIZE
+    val bitShiftAmount = (shiftAmount % BIG_UINT_BLOCK_SIZE).toInt()
+    val carryShiftAmount = BIG_UINT_BLOCK_SIZE - bitShiftAmount
+
+    (1..blockShiftAmount).forEach { newIntegerList.add(0) }
+
+    if (bitShiftAmount == 0) {
+        container.forEach { newIntegerList.add(it) }
+    } else {
+        var carry = 0L
+        container.forEach { shiftBlock ->
+            newIntegerList.add(carry + (shiftBlock shl bitShiftAmount))
+            carry = shiftBlock ushr carryShiftAmount
+        }
+    }
+
+    return BigUnsignedInteger(newIntegerList)
+}
