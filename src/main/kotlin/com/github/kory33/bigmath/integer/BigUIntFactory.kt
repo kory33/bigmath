@@ -2,33 +2,29 @@ package com.github.kory33.bigmath.integer
 
 import java.util.*
 
-private val subIntegerHexSize = 16
+private const val SUB_INTEGER_HEX_SIZE = BIG_UINT_BLOCK_SIZE / 4
+
 private fun splitStr(str : String, index : Int) = Pair(
         str.subSequence(0, index).toString(),
         str.subSequence(index, str.length).toString()
 )
 
-private fun longFromUHex(s : String) = if ((s.length < 16) or (s[0].toLong() < 0x8)) {
-    s.toLong(16)
-} else {
-    // change the uppermost half-byte into negative representation
-    -((0x10 - s[0].toString().toLong(16)) shl 60) + s.subSequence(1, s.length).toString().toLong(16)
-}
+private fun intFromUHex(s : String) = s.toLong(16).toInt()
 
 object BigUIntFactory {
     fun fromHexStr(str: String): BigUnsignedInteger {
         var remainingString = str
-        val newIntegerList = ArrayList<Long>()
+        val newIntegerList = ArrayList<Int>()
 
-        while (remainingString.length >= subIntegerHexSize) {
-            val (rem, block) = splitStr(remainingString, remainingString.length - subIntegerHexSize)
+        while (remainingString.length >= SUB_INTEGER_HEX_SIZE) {
+            val (rem, block) = splitStr(remainingString, remainingString.length - SUB_INTEGER_HEX_SIZE)
             remainingString = rem
 
-            newIntegerList.add(longFromUHex(block))
+            newIntegerList.add(intFromUHex(block))
         }
 
         if (!remainingString.isEmpty()) {
-            newIntegerList.add(longFromUHex(remainingString))
+            newIntegerList.add(intFromUHex(remainingString))
         }
 
         return BigUnsignedInteger(newIntegerList)

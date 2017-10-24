@@ -2,14 +2,14 @@ package com.github.kory33.bigmath.integer
 
 import java.util.*
 
-private fun toUBinStr(n : Long) = (63 downTo 0)
-        .map { (n ushr it) and 1L }
+private fun toUBinStr(n : Int) = (31 downTo 0)
+        .map { (n ushr it) and 1 }
         .map { it.toString() }
         .reduce { s1, s2 -> s1 + s2 }
 
-private fun toUHexStr(n : Long) = (1 downTo 0)
-        .map { (n ushr (it * 32)) and 0xffffffffL }
-        .map { it.toString(16).padStart(8, '0') }
+private fun toUHexStr(n : Int) = (1 downTo 0)
+        .map { (n ushr (it * 16)) and 0xffff }
+        .map { it.toString(16).padStart(4, '0') }
         .reduce { s1, s2 -> s1 + s2 }
 
 private fun removeFirstChars(s : String, c : Char) : String{
@@ -21,7 +21,7 @@ private fun removeFirstChars(s : String, c : Char) : String{
     }
 }
 
-const internal val BIG_UINT_BLOCK_SIZE = 64
+internal const val BIG_UINT_BLOCK_SIZE = 32
 
 /**
  * A class which represents a large positive integer or zero.
@@ -30,8 +30,8 @@ const internal val BIG_UINT_BLOCK_SIZE = 64
  * The array must contain at least one element. It must be ensured that
  * either the last element of array is not zero or the array has a length of 1.
  */
-class BigUnsignedInteger internal constructor(internal val container: ArrayList<Long> = ArrayList()) {
-    constructor(int : Long) : this() {
+class BigUnsignedInteger internal constructor(internal val container: ArrayList<Int> = ArrayList()) {
+    constructor(int : Int) : this() {
         this.container.add(int)
     }
 
@@ -42,10 +42,10 @@ class BigUnsignedInteger internal constructor(internal val container: ArrayList<
     }
 
     internal fun removeTrailingZeros() {
-        while (container.last() == 0L && container.size != 0) {
-            container.removeAt(container.lastIndex)
+        container.dropLastWhile { it == 0 }
+        if (container.isEmpty()) {
+            container.add(0)
         }
-        container.dropLastWhile { it == 0L }
     }
 
     fun copy() = BigUnsignedInteger(ArrayList(container))

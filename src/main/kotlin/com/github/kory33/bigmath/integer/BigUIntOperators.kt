@@ -6,59 +6,31 @@ import java.util.*
  * Compute x + y + carry, while taking x and y as unsigned integers.
  * @return pair of result and carry to upper digit
  */
-private fun addLong(x : Long, y : Long, carry : Boolean) : Pair<Long, Boolean> {
-    val sum = x + y + (if (carry) 1 else 0)
-
-    return if (x >= 0 && y >= 0) {
-        Pair(sum, false)
-    } else if (x < 0 && y < 0) {
-        Pair(sum, true)
-    } else {
-        Pair(sum, sum >= 0)
-    }
-}
-
-/**
- * Compute x - y, while taking x and y as unsigned integers.
- * @return pair of result and borrow from upper digit
- */
-private fun subtractLong(x : Long, y : Long) : Pair<Long, Boolean> {
-    val diff = x - y
-
-    return if ((x >= 0 && y >= 0) || (x < 0 && y < 0)) {
-        Pair(diff, diff < 0)
-    } else {
-        Pair(diff, y < 0)
-    }
+private fun addInt(x : Int, y : Int, carry : Boolean) : Pair<Int, Boolean> {
+    val longResult = Integer.toUnsignedLong(x) + Integer.toUnsignedLong(y) + (if (carry) 1 else 0)
+    return Pair(longResult.toInt(), longResult > 0xffffffffL)
 }
 
 /**
  * Compute x - y - borrow, while taking x and y as unsigned integers.
  * @return pair of result and borrow from upper digit
  */
-private fun subtractLong(x : Long, y : Long, borrow : Boolean) : Pair<Long, Boolean> {
-    val (diff, diffBorrow) = subtractLong(x, y)
+private fun subtractLong(x : Int, y : Int, borrow : Boolean) : Pair<Int, Boolean> {
+    val longX = Integer.toUnsignedLong(x)
+    val longSubtractAmount = Integer.toUnsignedLong(y) + if(borrow) 1 else 0
 
-    return if (borrow) {
-        if (diff != 0L) {
-            Pair(diff - 1, diffBorrow)
-        } else {
-            Pair(-1L, true)
-        }
+    return if (longX >= longSubtractAmount) {
+        Pair((longX - longSubtractAmount).toInt(), false)
     } else {
-        Pair(diff, diffBorrow)
+        Pair((0x100000000 + longX - longSubtractAmount).toInt(), true)
     }
 }
 
 /**
  * Compare x and y while taking x and y as unsigned integers
  */
-private fun compareLong(x: Long, y: Long) : Int {
-    return if ((x >= 0 && y >= 0) || (x < 0 && y < 0)) {
-        x.compareTo(y)
-    } else {
-        -x.compareTo(0)
-    }
+private fun compareInt(x: Int, y: Int) : Int {
+    return Integer.toUnsignedLong(x).compareTo(Integer.toUnsignedLong(y))
 }
 
 
@@ -68,22 +40,22 @@ operator fun BigUnsignedInteger.plus(another : BigUnsignedInteger) : BigUnsigned
         return another + this
     }
 
-    val newIntegerList = ArrayList<Long>()
+    val newIntegerList = ArrayList<Int>()
 
     var carry = false
     val thisIterator = this.container.iterator()
     another.container.forEach { anotherNextValue ->
         val thisNextValue = thisIterator.next()
 
-        val (blockSum, nextCarry) = addLong(anotherNextValue, thisNextValue, carry)
+        val (blockSum, nextCarry) = addInt(anotherNextValue, thisNextValue, carry)
 
         newIntegerList.add(blockSum)
         carry = nextCarry
     }
 
     thisIterator.forEachRemaining { nextValue ->
-        newIntegerList.add(nextValue + if (carry) 1L else 0L)
-        carry = carry && nextValue == -1L
+        newIntegerList.add(nextValue + if (carry) 1 else 0)
+        carry = carry && nextValue == -1
     }
 
     if (carry) {
@@ -102,7 +74,7 @@ operator fun BigUnsignedInteger.compareTo(another: BigUnsignedInteger) : Int {
         val thisBlockValue = container[compareIndex]
         val anotherBlockValue = another.container[compareIndex]
         if (thisBlockValue != anotherBlockValue) {
-            return compareLong(thisBlockValue, anotherBlockValue)
+            return compareInt(thisBlockValue, anotherBlockValue)
         }
     }
 
@@ -113,7 +85,7 @@ operator fun BigUnsignedInteger.minus(another: BigUnsignedInteger) : BigUnsigned
     if (another > this) {
         throw ArithmeticException("Result out of range!")
     }
-    val newIntegerList = ArrayList<Long>()
+    val newIntegerList = ArrayList<Int>()
 
     var borrow = false
     val thisIterator = this.container.iterator()
@@ -127,8 +99,8 @@ operator fun BigUnsignedInteger.minus(another: BigUnsignedInteger) : BigUnsigned
     }
 
     thisIterator.forEachRemaining { nextValue ->
-        newIntegerList.add(nextValue - (if (borrow) 1L else 0L))
-        borrow = borrow && nextValue == 0L
+        newIntegerList.add(nextValue - (if (borrow) 1 else 0))
+        borrow = borrow && nextValue == 0
     }
 
     val newBigUInt = BigUnsignedInteger(newIntegerList)
@@ -147,7 +119,7 @@ infix fun BigUnsignedInteger.shl(shiftAmount : Long) : BigUnsignedInteger {
         return BigUnsignedInteger(0)
     }
 
-    val newIntegerList = ArrayList<Long>()
+    val newIntegerList = ArrayList<Int>()
 
     val blockShiftAmount = shiftAmount / BIG_UINT_BLOCK_SIZE
     val bitShiftAmount = (shiftAmount % BIG_UINT_BLOCK_SIZE).toInt()
@@ -158,7 +130,7 @@ infix fun BigUnsignedInteger.shl(shiftAmount : Long) : BigUnsignedInteger {
     if (bitShiftAmount == 0) {
         container.forEach { newIntegerList.add(it) }
     } else {
-        var carry = 0L
+        var carry = 0
         container.forEach { shiftBlock ->
             newIntegerList.add(carry + (shiftBlock shl bitShiftAmount))
             carry = shiftBlock ushr carryShiftAmount
