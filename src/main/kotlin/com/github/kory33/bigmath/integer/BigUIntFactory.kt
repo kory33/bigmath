@@ -18,19 +18,19 @@ private fun longFromUHex(s : String) = if ((s.length < 16) or (s[0].toLong() < 0
 object BigUIntFactory {
     fun fromHexStr(str: String): BigUnsignedInteger {
         var remainingString = str
-        val deque = ArrayDeque<Long>()
+        val newIntegerList = ArrayList<Long>()
 
         while (remainingString.length >= subIntegerHexSize) {
             val (rem, block) = splitStr(remainingString, remainingString.length - subIntegerHexSize)
             remainingString = rem
 
-            deque.addLast(longFromUHex(block))
+            newIntegerList.add(longFromUHex(block))
         }
 
         if (!remainingString.isEmpty()) {
-            deque.addLast(longFromUHex(remainingString))
+            newIntegerList.add(longFromUHex(remainingString))
         }
 
-        return BigUnsignedInteger(deque)
+        return BigUnsignedInteger(newIntegerList)
     }
 }
