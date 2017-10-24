@@ -130,12 +130,45 @@ infix fun BigUnsignedInteger.shl(shiftAmount : Long) : BigUnsignedInteger {
     if (bitShiftAmount == 0) {
         container.forEach { newIntegerList.add(it) }
     } else {
+        // carry from lower block
         var carry = 0
+
         container.forEach { shiftBlock ->
             newIntegerList.add(carry + (shiftBlock shl bitShiftAmount))
             carry = shiftBlock ushr carryShiftAmount
         }
+
+        if (carry != 0) {
+            newIntegerList.add(carry)
+        }
     }
 
     return BigUnsignedInteger(newIntegerList)
+}
+
+private infix fun BigUnsignedInteger.multLong(another: BigUnsignedInteger) : BigUnsignedInteger {
+    var result = BigUnsignedInteger(0)
+    var thisShifted = this
+
+    another.container.forEach { blockValue ->
+        var shiftedBlockValue = blockValue
+
+        (1..BIG_UINT_BLOCK_SIZE).forEach {
+            if ((shiftedBlockValue and 1) == 1) {
+                result += thisShifted
+            }
+            thisShifted = thisShifted shl 1
+            shiftedBlockValue = shiftedBlockValue ushr 1
+        }
+    }
+
+    return result
+}
+
+operator fun BigUnsignedInteger.times(another: BigUnsignedInteger) : BigUnsignedInteger {
+    if (another.container.size > this.container.size) {
+        return another * this
+    }
+
+    return this multLong another
 }
