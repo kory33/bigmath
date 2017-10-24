@@ -21,6 +21,8 @@ private fun removeFirstChars(s : String, c : Char) : String{
     }
 }
 
+const internal val BIG_UINT_BLOCK_SIZE = 64
+
 /**
  * A class which represents a large positive integer or zero.
  * It stores array of integers in little endian.
@@ -28,24 +30,25 @@ private fun removeFirstChars(s : String, c : Char) : String{
  * The array must contain at least one element. It must be ensured that
  * either the last element of array is not zero or the array has a length of 1.
  */
-class BigUnsignedInteger internal constructor(internal val container: ArrayDeque<Long> = ArrayDeque()) {
+class BigUnsignedInteger internal constructor(internal val container: ArrayList<Long> = ArrayList()) {
     constructor(int : Long) : this() {
         this.container.add(int)
     }
 
     init {
         if(container.isEmpty()) {
-            container.addFirst(0)
+            container.add(0)
         }
     }
 
     internal fun removeTrailingZeros() {
-        while (container.last == 0L && container.size != 0) {
-            container.removeLast()
+        while (container.last() == 0L && container.size != 0) {
+            container.removeAt(container.lastIndex)
         }
+        container.dropLastWhile { it == 0L }
     }
 
-    fun copy() = BigUnsignedInteger(container.clone())
+    fun copy() = BigUnsignedInteger(ArrayList(container))
 
     fun toHexString() = this.container
             .map { toUHexStr(it) }

@@ -68,7 +68,7 @@ operator fun BigUnsignedInteger.plus(another : BigUnsignedInteger) : BigUnsigned
         return another + this
     }
 
-    val newIntegerDeque = ArrayDeque<Long>()
+    val newIntegerList = ArrayList<Long>()
 
     var carry = false
     val thisIterator = this.container.iterator()
@@ -77,20 +77,20 @@ operator fun BigUnsignedInteger.plus(another : BigUnsignedInteger) : BigUnsigned
 
         val (blockSum, nextCarry) = addLong(anotherNextValue, thisNextValue, carry)
 
-        newIntegerDeque.addLast(blockSum)
+        newIntegerList.add(blockSum)
         carry = nextCarry
     }
 
     thisIterator.forEachRemaining { nextValue ->
-        newIntegerDeque.addLast(nextValue + if (carry) 1L else 0L)
+        newIntegerList.add(nextValue + if (carry) 1L else 0L)
         carry = carry && nextValue == -1L
     }
 
     if (carry) {
-        newIntegerDeque.addLast(1)
+        newIntegerList.add(1)
     }
 
-    return BigUnsignedInteger(newIntegerDeque)
+    return BigUnsignedInteger(newIntegerList)
 }
 
 operator fun BigUnsignedInteger.compareTo(another: BigUnsignedInteger) : Int {
@@ -98,14 +98,11 @@ operator fun BigUnsignedInteger.compareTo(another: BigUnsignedInteger) : Int {
         return container.size.compareTo(another.container.size)
     }
 
-    val thisIterator = this.container.descendingIterator()
-    val anotherIterator  = another.container.descendingIterator()
-
-    while (thisIterator.hasNext()) {
-        val thisNext = thisIterator.next()
-        val anotherNext = anotherIterator.next()
-        if (thisNext != anotherNext) {
-            return compareLong(thisNext, anotherNext)
+    (container.lastIndex downTo 0).forEach { compareIndex ->
+        val thisBlockValue = container[compareIndex]
+        val anotherBlockValue = another.container[compareIndex]
+        if (thisBlockValue != anotherBlockValue) {
+            return compareLong(thisBlockValue, anotherBlockValue)
         }
     }
 
@@ -116,7 +113,7 @@ operator fun BigUnsignedInteger.minus(another: BigUnsignedInteger) : BigUnsigned
     if (another > this) {
         throw ArithmeticException("Result out of range!")
     }
-    val newIntegerDeque = ArrayDeque<Long>()
+    val newIntegerList = ArrayList<Long>()
 
     var borrow = false
     val thisIterator = this.container.iterator()
@@ -125,16 +122,16 @@ operator fun BigUnsignedInteger.minus(another: BigUnsignedInteger) : BigUnsigned
 
         val (blockDiff, nextBorrow) = subtractLong(thisNextValue, anotherNextValue, borrow)
 
-        newIntegerDeque.addLast(blockDiff)
+        newIntegerList.add(blockDiff)
         borrow = nextBorrow
     }
 
     thisIterator.forEachRemaining { nextValue ->
-        newIntegerDeque.addLast(nextValue - (if (borrow) 1L else 0L))
+        newIntegerList.add(nextValue - (if (borrow) 1L else 0L))
         borrow = borrow && nextValue == 0L
     }
 
-    val newBigUInt = BigUnsignedInteger(newIntegerDeque)
+    val newBigUInt = BigUnsignedInteger(newIntegerList)
     newBigUInt.removeTrailingZeros()
 
     return newBigUInt
