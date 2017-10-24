@@ -65,8 +65,10 @@ class BigUnsignedInteger internal constructor(internal val container: ArrayList<
             })
 
     override fun toString(): String {
-        return container.toString()
+        return this.toHexString()
     }
+
+    fun toContainerString() = this.container.toString()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
