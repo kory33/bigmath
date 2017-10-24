@@ -1,7 +1,5 @@
 package com.github.kory33.bigmath.integer
 
-import java.util.*
-
 /**
  * Compute x + y + carry, while taking x and y as unsigned integers.
  * @return pair of result and carry to upper digit
@@ -15,7 +13,7 @@ private fun addInt(x : Int, y : Int, carry : Boolean) : Pair<Int, Boolean> {
  * Compute x - y - borrow, while taking x and y as unsigned integers.
  * @return pair of result and borrow from upper digit
  */
-private fun subtractLong(x : Int, y : Int, borrow : Boolean) : Pair<Int, Boolean> {
+private fun subtractInt(x : Int, y : Int, borrow : Boolean) : Pair<Int, Boolean> {
     val longX = Integer.toUnsignedLong(x)
     val longSubtractAmount = Integer.toUnsignedLong(y) + if(borrow) 1 else 0
 
@@ -24,6 +22,18 @@ private fun subtractLong(x : Int, y : Int, borrow : Boolean) : Pair<Int, Boolean
     } else {
         Pair((0x100000000 + longX - longSubtractAmount).toInt(), true)
     }
+}
+
+/**
+ * Compute x * y + carry, while taking x and y as unsigned integers.
+ * @return pair of result and carry to upper digit
+ */
+private fun multInt(x : Int, y : Int, carry : Int) : Pair<Int, Int> {
+    val longX = Integer.toUnsignedLong(x)
+    val longY = Integer.toUnsignedLong(y)
+    val product = longX * longY + carry
+
+    return Pair(product.toInt(), (product ushr 32).toInt())
 }
 
 /**
@@ -92,7 +102,7 @@ operator fun BigUnsignedInteger.minus(another: BigUnsignedInteger) : BigUnsigned
     another.container.forEach { anotherNextValue ->
         val thisNextValue = thisIterator.next()
 
-        val (blockDiff, nextBorrow) = subtractLong(thisNextValue, anotherNextValue, borrow)
+        val (blockDiff, nextBorrow) = subtractInt(thisNextValue, anotherNextValue, borrow)
 
         newIntegerList.add(blockDiff)
         borrow = nextBorrow
@@ -146,20 +156,31 @@ infix fun BigUnsignedInteger.shl(shiftAmount : Long) : BigUnsignedInteger {
     return BigUnsignedInteger(newIntegerList)
 }
 
+infix fun BigUnsignedInteger.shl(shiftAmount: Int) = this shl shiftAmount.toLong()
+
+operator fun BigUnsignedInteger.times(another: Int) : BigUnsignedInteger {
+    val newIntegerList = ArrayList<Int>()
+    var carry = 0
+
+    container.forEach { blockValue ->
+        val (blockProduct, blockCarry) = multInt(blockValue, another, carry)
+
+        newIntegerList.add(blockProduct)
+        carry = blockCarry
+    }
+
+    if (carry != 0) {
+        newIntegerList.add(carry)
+    }
+
+    return BigUnsignedInteger(newIntegerList)
+}
+
 private infix fun BigUnsignedInteger.multLong(another: BigUnsignedInteger) : BigUnsignedInteger {
     var result = BigUnsignedInteger(0)
-    var thisShifted = this
 
-    another.container.forEach { blockValue ->
-        var shiftedBlockValue = blockValue
-
-        (1..BIG_UINT_BLOCK_SIZE).forEach {
-            if ((shiftedBlockValue and 1) == 1) {
-                result += thisShifted
-            }
-            thisShifted = thisShifted shl 1
-            shiftedBlockValue = shiftedBlockValue ushr 1
-        }
+    another.container.forEachIndexed { index, blockValue ->
+        result += (this * blockValue) shl (index * BIG_UINT_BLOCK_SIZE)
     }
 
     return result
