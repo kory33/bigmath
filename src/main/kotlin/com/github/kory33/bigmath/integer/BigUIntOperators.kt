@@ -31,7 +31,8 @@ private fun subtractInt(x : Int, y : Int, borrow : Boolean) : Pair<Int, Boolean>
 private fun multInt(x : Int, y : Int, carry : Int) : Pair<Int, Int> {
     val longX = Integer.toUnsignedLong(x)
     val longY = Integer.toUnsignedLong(y)
-    val product = longX * longY + carry
+    val longCarry = Integer.toUnsignedLong(carry)
+    val product = longX * longY + longCarry
 
     return Pair(product.toInt(), (product ushr 32).toInt())
 }

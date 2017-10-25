@@ -32,6 +32,7 @@ internal const val BIG_UINT_BLOCK_SIZE = 32
  */
 class BigUnsignedInteger internal constructor(internal val container: ArrayList<Int> = ArrayList()) {
     constructor(int : Int) : this() {
+        this.container.removeAll { true }
         this.container.add(int)
     }
 
